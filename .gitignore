@@ -1,0 +1,24 @@
+# macOS 系统文件
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# 图标文件
+Icon?
+
+# 磁盘映像文件
+*.dmg
+*.iso
+*.img
+
+# PyCharm 项目文件
+.idea/
+*.iml
+
+# Python 字节码文件
+__pycache__/
+*.py[cod]
+
+# Python 虚拟环境
+venv/
+env/
