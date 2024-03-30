@@ -22,8 +22,8 @@ class SnakeEnv:
 
     def get_env_info(self):
         """获取环境信息，包括状态大小和动作大小"""
-        state_size = 6  # 状态信息大小：蛇头位置和食物位置
-        action_size = 4  # 动作大小：上下左右
+        state_size = 4  # 状态信息大小：食物位置和蛇头位置
+        action_size = 4  # 动作大小：左右上下
         return state_size, action_size
 
     def reset(self):
@@ -40,49 +40,74 @@ class SnakeEnv:
         x, y = self.snake_pos[0]  # 蛇头位置
         fx, fy = self.food_pos  # 食物位置
 
-        # 状态数组，包含食物相对蛇头的位置以及蛇头的坐标
-        state_arr = [fx < x,  # 食物在蛇头左侧
-                     fx > x,  # 食物在蛇头右侧
-                     fy > y,  # 食物在蛇头上方
-                     fy < y,  # 食物在蛇头下方
-                     x,  # 蛇头X坐标
-                     y]  # 蛇头Y坐标
+        # 状态数组
+        state_arr = [
+                    fx, # 食物x坐标
+                    fy, # 食物y坐标
+                    x,  # 蛇头X坐标
+                    y]  # 蛇头Y坐标
 
         state = np.array(state_arr, dtype=int)
         return state
+        # """
+        #     创建一个游戏状态二维数组。
+        #
+        #     参数:
+        #     - grid_size: 游戏网格的大小，假设是一个正方形。
+        #     - snake_positions: 蛇身体的位置列表，包括蛇头。蛇头在列表的第一个位置。
+        #     - food_position: 食物的位置。
+        #
+        #     返回:
+        #     - 一个二维数组，表示游戏的当前状态。
+        #     """
+        # # 初始化一个grid_size x grid_size的二维数组，初始值为0
+        # game_state = [[0 for _ in range(self.grid_size)] for _ in range(self.grid_size)]
+        #
+        # # 标记食物的位置
+        # game_state[self.food_pos[0]][self.food_pos[1]] = 3
+        #
+        # # 标记蛇头的位置
+        # snake_head = self.snake_pos[0]
+        # game_state[snake_head[0]][snake_head[1]] = 1
+        #
+        # # 标记蛇身的位置
+        # for pos in self.snake_pos[1:]:
+        #     game_state[pos[0]][pos[1]] = 2
+        #
+        # return np.array(game_state).flatten()
 
     def step(self, action):
-        """根据动作更新环境状态，并返回新的状态、奖励和游戏是否结束"""
-        # 定义动作对应的方向
+        """根据动作更新游戏状态，并检查游戏是否结束。"""
         directions = ['LEFT', 'RIGHT', 'UP', 'DOWN']
-        dx, dy = 0, 0
-        if directions[action] == 'LEFT':
-            dx, dy = -1, 0
-        elif directions[action] == 'RIGHT':
-            dx, dy = 1, 0
-        elif directions[action] == 'UP':
-            dx, dy = 0, 1
-        elif directions[action] == 'DOWN':
-            dx, dy = 0, -1
+        dx, dy = {'LEFT': (-1, 0), 'RIGHT': (1, 0), 'UP': (0, 1), 'DOWN': (0, -1)}[directions[action]]
 
-        # 更新蛇头位置
         previous_head = [self.snake_pos[0][0], self.snake_pos[0][1]]
-        head = [self.snake_pos[0][0] + dx, self.snake_pos[0][1] + dy]
-        self.snake_pos.insert(0, head)
+        new_head = [self.snake_pos[0][0] + dx, self.snake_pos[0][1] + dy]
 
-        # 检查是否吃到食物
-        if head == self.food_pos:
-            self.score += 1  # 吃到食物分数加1
-            self.food_pos = [random.randint(0, self.grid_size - 1), random.randint(0, self.grid_size - 1)]  # 生成新的食物位置
-        else:
-            self.snake_pos.pop()  # 没吃到食物，蛇尾部去掉一个单位长度
+        # 检查蛇头是否撞到边界
+        if new_head[0] < 0 or new_head[0] >= self.grid_size or new_head[1] < 0 or new_head[1] >= self.grid_size:
+            self.score = -10
+            self.done = True
 
-        if abs(previous_head[0] - self.food_pos[0]) > abs(head[0] - self.food_pos[0]) or abs(previous_head[0] - self.food_pos[0]) > abs(head[0] - self.food_pos[0]):
-            self.score += 1
-        else:
-            self.score -= 1
+        # # 检查蛇头是否撞到自己的身体
+        # if new_head in self.snake_pos:
+        #     self.score = -10
+        #     self.done = True
 
-        # 这里可以添加检查游戏是否结束的逻辑，此处为了简化暂时不写，后续版本再补
+        # 如果游戏未结束，更新蛇的位置
+        if not self.done:
+            self.snake_pos.insert(0, new_head)
+            if new_head == self.food_pos:  # 吃到食物
+                self.score += 10
+                self.food_pos = [random.randint(0, self.grid_size - 1), random.randint(0, self.grid_size - 1)]
+            else:
+                self.snake_pos.pop()  # 移动蛇，未吃到食物则移除尾部
+
+            # 引导，向食物靠近则+0.1，远离则-0.1
+            if (abs(previous_head[0] - self.food_pos[0]) > abs(new_head[0] - self.food_pos[0])) or (abs(previous_head[1] - self.food_pos[1]) > abs(new_head[1] - self.food_pos[1])):
+                self.score += 1
+            else:
+                self.score -= 1
 
         return self._get_state(), self.score, self.done
 

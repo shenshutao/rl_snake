@@ -25,7 +25,7 @@ for e in range(episodes):
     for s in range(batch_size):
         action = agent.act(state)  # 根据当前状态选择动作
         next_state, score, done = env.step(action)  # 执行动作，获得反馈
-        reward = score - previous_score  # 计算本步骤的即时奖励
+        reward = score - previous_score  # 计算当前步骤的即时奖励
         agent.remember(state, action, reward, next_state, done)  # 保存经验
         state = next_state
         previous_score = score
@@ -35,11 +35,11 @@ for e in range(episodes):
             break
 
     episode_rewards.append(total_score)  # 记录本回合总得分
-    agent.replay(batch_size)  # 经验回放学习
+    loss = agent.replay(batch_size)  # 经验回放学习
 
     # 每1000个episode保存一次模型，并打印信息
     if e % 1000 == 0:
-        print(f'Start replay for episode {e}, score is {score}')
+        print(f'Start replay for episode {e}, score is {score}, loss is {loss}')
         print(agent.memory.sample(1)[0])  # 打印一个样本经验，以观察
         agent.save('agent_model.pth')  # 保存模型
 
