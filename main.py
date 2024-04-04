@@ -1,45 +1,51 @@
-from agent import Agent
-from SnakeEnv import SnakeEnv
-import matplotlib.pyplot as plt
 import time
+
+import matplotlib.pyplot as plt
+
+from SnakeEnv import SnakeEnv
+from agents.DQNAgent import Agent
 
 # 初始化蛇游戏环境和智能体
 env = SnakeEnv(mode='TRAIN')
-state_size, action_size = env.get_env_info()  # 状态和动作的维度
-agent = Agent(state_size, action_size)
+input_channels, state_size, action_size = env.get_env_info()  # 状态和动作的维度
+agent = Agent(input_channels, state_size, action_size)
 
 # 训练参数设置
-episodes = 10000  # 总训练回合数
-batch_size = 64  # 批处理大小
+episodes = 10000000  # 总训练回合数
+batch_size = 512  # 每轮步数
 episode_rewards = []  # 用于存储每个episode的总奖励
 
+agent.load("agent_model.pth")  # 加载预训练模型，电脑慢的可以重复训练一个模型
 print('Start training...')
 start_time = time.time()
 
 # 训练循环
 for e in range(episodes):
-    state = env.reset()  # 重置环境获取初始状态
+    state, expect_action = env.reset()  # 重置环境获取初始状态
+    current_score = 0  # 该回合总得分初始化为0
     previous_score = 0  # 初始化前一得分
-    total_score = 0  # 该回合总得分
 
     for s in range(batch_size):
         action = agent.act(state)  # 根据当前状态选择动作
-        next_state, score, done = env.step(action)  # 执行动作，获得反馈
-        reward = score - previous_score  # 计算当前步骤的即时奖励
-        agent.remember(state, action, reward, next_state, done)  # 保存经验
+        # print(action, end=" ")
+        next_state, expect_action, current_score, done = env.step(action)  # 执行动作，获得反馈
+        # env.render()  # 更新当前环境的图像
+        reward = current_score - previous_score  # 计算当前步骤的即时奖励
+        agent.remember(state, action, reward, next_state, done, expect_action)  # 保存经验
         state = next_state
-        previous_score = score
-        total_score += reward  # 累加得分
+        previous_score = current_score
         if done:
-            print('蛇死了')
+            # print('蛇死了')
             break
 
-    episode_rewards.append(total_score)  # 记录本回合总得分
-    loss = agent.replay(batch_size)  # 经验回放学习
+    episode_rewards.append(current_score)  # 记录本回合总得分
+    loss = agent.replay()  # 经验回放学习
+    # print()
+    # print(f'Start replay for episode {e}, step {s}, total_score is {current_score}, loss is {loss}')
 
     # 每1000个episode保存一次模型，并打印信息
     if e % 1000 == 0:
-        print(f'Start replay for episode {e}, score is {score}, loss is {loss}')
+        print(f'Start replay for episode {e}, step {s}, total_score is {current_score}, loss is {loss}')
         print(agent.memory.sample(1)[0])  # 打印一个样本经验，以观察
         agent.save('agent_model.pth')  # 保存模型
 
@@ -57,11 +63,11 @@ print('Start testing')
 agent.load("agent_model.pth")  # 加载模型
 env = SnakeEnv(mode='TEST')  # 设置环境为测试模式
 
-state = env.reset()  # 重置环境获取初始状态
+state, expect_action = env.reset()  # 重置环境获取初始状态
 for s in range(1000):  # 这里假设最多执行1000步
     agent.epsilon = 0  # 设置epsilon=0，完全依赖模型进行决策
     action = agent.act(state)  # 选择动作
-    next_state, reward, done = env.step(action)
+    next_state, expect_action, reward, done = env.step(action)
     img = env.render()  # 获取当前环境的图像
 
     state = next_state

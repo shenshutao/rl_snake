@@ -1,5 +1,4 @@
-# rl_snake
-# rl_snake
-# rl_snake
-# rl_snake
-# rl_snake
+# 强化学习玩贪吃蛇游戏
+
+贪吃蛇游戏：
+环境：20 * 20的数组，1
