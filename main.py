@@ -71,11 +71,11 @@ def test_agent(render=True):
     agent = Agent(1, state_size, action_size)
     agent.load("agent_model.pth")  # Load the model.
 
-    state, _ = env.reset()  # Reset environment to get initial state.
+    state= env.reset()  # Reset environment to get initial state.
     while True:
         agent.epsilon = 0  # Set epsilon=0, fully rely on the model for decision making.
         action = agent.act(state)  # Choose action.
-        next_state, _, _, done = env.step(action)
+        next_state, _, done = env.step(action)
         if render:
             env.render()  # Get the current environment image.
 
@@ -85,5 +85,5 @@ def test_agent(render=True):
 
 
 if __name__ == "__main__":
-    train_agent(episodes=100000, render=False)
+    # train_agent(episodes=100000, render=False)
     test_agent(render=True)
