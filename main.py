@@ -7,7 +7,7 @@ from SnakeEnv import SnakeEnv
 from agents.DQNAgent import Agent
 
 
-def train_agent(episodes=10000, episode_max_steps=512, render=False):
+def train_agent(episodes=10000, episode_max_steps=1024, render=False):
     """Train the DQN agent for a specified number of episodes."""
     # Initialize the Snake game environment and the agent.
     env = SnakeEnv(render)
@@ -85,5 +85,5 @@ def test_agent(render=True):
 
 
 if __name__ == "__main__":
-    # train_agent(episodes=100000, render=False)
+    train_agent(episodes=100000, render=False)
     test_agent(render=True)
