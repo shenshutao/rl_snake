@@ -52,11 +52,11 @@ class ReplayBuffer:
     def __init__(self, capacity):
         self.buffer = deque(maxlen=capacity)  # Define a fixed-size buffer using deque
 
-    def add(self, state, action, reward, next_state, done, expect_actions):
+    def add(self, state, action, reward, next_state, done):
         """
         Add an experience to the buffer.
         """
-        self.buffer.append((state, action, reward, next_state, done, expect_actions))
+        self.buffer.append((state, action, reward, next_state, done))
 
     def sample(self, batch_size):
         """
@@ -82,11 +82,11 @@ class Agent:
         self.model = DQN(input_channels, action_size)
         self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
 
-    def remember(self, state, action, reward, next_state, done, expect_action):
+    def remember(self, state, action, reward, next_state, done):
         """
         Store an experience in the Replay Buffer.
         """
-        self.memory.add(state, action, reward, next_state, done, expect_action)
+        self.memory.add(state, action, reward, next_state, done)
 
     def act(self, state):
         """
@@ -108,7 +108,7 @@ class Agent:
             return  # Do not train if there aren't enough experiences in the buffer
 
         batch = self.memory.sample(self.batch_size)  # Sample a batch of experiences
-        states, actions, rewards, next_states, dones, expect_actions = zip(*batch)
+        states, actions, rewards, next_states, dones = zip(*batch)
 
         # Prepare the tensors for PyTorch
         states = torch.stack([torch.Tensor(state).unsqueeze(0) for state in states])

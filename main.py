@@ -29,17 +29,17 @@ def train_agent(episodes=10000, episode_max_steps=512, render=False):
 
     # Training loop.
     for e in range(episodes):
-        state, expect_action = env.reset()  # Reset environment to get initial state.
+        state = env.reset()  # Reset environment to get initial state.
         current_score = 0  # Initialize total score for the episode to 0.
         previous_score = 0  # Initialize previous score.
 
         for s in range(episode_max_steps):
             action = agent.act(state)  # Choose action based on current state.
-            next_state, expect_action, current_score, done = env.step(action)  # Execute action, get feedback.
+            next_state, current_score, done = env.step(action)  # Execute action, get feedback.
             if render:
                 env.render()  # Update the current environment image.
             reward = current_score - previous_score  # Calculate immediate reward for the current step.
-            agent.remember(state, action, reward, next_state, done, expect_action)  # Save experience.
+            agent.remember(state, action, reward, next_state, done)  # Save experience.
             state = next_state
             previous_score = current_score
             if done:

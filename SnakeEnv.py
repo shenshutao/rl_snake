@@ -63,12 +63,7 @@ class SnakeEnv:
         for pos in self.snake_pos[1:]:
             game_state[pos[0]][pos[1]] = 2
 
-        # Determine the expected action based on the food's position relative to the snake
-        x, y = self.snake_pos[0]
-        fx, fy = self.food_pos
-        expected_action = [fx < x, fx > x, fy < y, fy > y]
-
-        return game_state, expected_action
+        return game_state
 
     def step(self, action):
         """Update the game state based on the action and check if the game has ended."""
@@ -98,13 +93,13 @@ class SnakeEnv:
             manhattan_dist_before = abs(previous_head[0] - self.food_pos[0]) + abs(previous_head[1] - self.food_pos[1])
             manhattan_dist_after = abs(new_head[0] - self.food_pos[0]) + abs(new_head[1] - self.food_pos[1])
 
-            # If the snake moves closer to the food, increase the score; otherwise, decrease it
+            # Reward shaping: if the snake moves closer to the food, increase the score; otherwise, decrease it
             if manhattan_dist_after < manhattan_dist_before:
-                self.score += 0.1  # Reward moving closer to the food
+                self.score += 0.01  # Reward moving closer to the food
             else:
-                self.score -= 0.1  # Penalize moving away from the food
+                self.score -= 0.01  # Penalize moving away from the food
 
-        return self._get_state()[0], self._get_state()[1], self.score, self.done
+        return self._get_state(), self.score, self.done
 
     def _generate_food(self):
         """
